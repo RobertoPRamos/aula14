@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evolución de las Plantas - DUA</title>
+    <!-- Google Fonts: Lexend for readability (similar to OpenDyslexic) -->
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600&family=Noto+Sans+Arabic:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --accent-green: #22c55e;
+            --accent-dark: #166534;
+            --contrast-text: #ffffff;
+            --high-contrast-bg: #000000;
+            --high-contrast-text: #ffff00;
+            --font-main: 'Lexend', sans-serif;
+        }
+
+        /* Accessibilty Classes */
+        .dyslexia-font { font-family: 'Lexend', sans-serif !important; letter-spacing: 0.05rem; word-spacing: 0.1rem; }
+        .high-contrast {
+            --bg-color: #000;
+            --card-bg: #1a1a1a;
+            --text-primary: #ffff00;
+            --accent-green: #ffff00;
+            --accent-dark: #ffffff;
+            background-color: var(--bg-color) !important;
+            color: var(--text-primary) !important;
+        }
+        
+        [dir="rtl"] { text-align: right; }
+
+        * {
+            box-sizing: border-box;
+            transition: background-color 0.3s, color 0.3s, transform 0.2s;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-main);
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        header {
+            padding: 1.5rem;
+            text-align: center;
+            background-color: var(--card-bg);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 1rem;
+        }
+
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 600;
+            background-color: var(--accent-green);
+            color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        button:hover { background-color: var(--accent-dark); transform: translateY(-2px); }
+        button:active { transform: translateY(0); }
+
+        .timer-container {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: var(--card-bg);
+            padding: 10px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .hidden { display: none !important; }
+
+        .timeline-wrapper {
+            padding: 4rem 1rem;
+            overflow-x: auto;
+            white-space: nowrap;
+            position: relative;
+            scrollbar-width: thin;
+        }
+
+        .timeline-line {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: #cbd5e1;
+            z-index: 1;
+        }
+
+        .timeline-container {
+            display: flex;
+            justify-content: space-between;
+            min-width: 1000px;
+            padding: 0 50px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .milestone {
+            display: inline-block;
+            text-align: center;
+            cursor: pointer;
+            width: 150px;
+        }
+
+        .milestone-dot {
+            width: 40px;
+            height: 40px;
+            background-color: var(--accent-green);
+            border: 4px solid var(--card-bg);
+            border-radius: 50%;
+            margin: 0 auto 1rem auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .milestone:hover .milestone-dot { transform: scale(1.2); }
+
+        .milestone-year { font-weight: 700; display: block; margin-bottom: 0.5rem; }
+
+        .content-area {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 1rem;
+        }
+
+        .info-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .adaptation-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .adaptation-item {
+            background: #f1f5f9;
+            padding: 1rem;
+            border-radius: 12px;
+            text-align: center;
+            color: #1e293b;
+        }
+
+        .high-contrast .adaptation-item {
+            background: #333;
+            color: #ffff00;
+            border: 1px solid #ffff00;
+        }
+
+        .emoji { font-size: 2.5rem; display: block; margin-bottom: 0.5rem; }
+
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        @media (max-width: 768px) {
+            .timeline-container { min-width: 800px; }
+            .controls { flex-direction: column; align-items: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="timer-container" id="timerContainer">
+        <span id="timerDisplay">00:00</span>
+        <button onclick="toggleTimer()" id="btnTimerControl">⏱️</button>
+        <button onclick="hideTimer()">❌</button>
+    </div>
+
+    <header>
+        <h1 id="mainTitle">Evolución de las Plantas</h1>
+        <p id="subTitle">Viaja en el tiempo para ver cómo conquistaron la Tierra.</p>
+        
+        <div class="controls">
+            <button onclick="setLanguage('es')">Castellano</button>
+            <button onclick="setLanguage('gl')">Galego</button>
+            <button onclick="setLanguage('ar')">العربية</button>
+            <button onclick="toggleDyslexia()">🔠 Fuente Lectura</button>
+            <button onclick="toggleContrast()">🌓 Alto Contraste</button>
+        </div>
+    </header>
+
+    <main>
+        <div class="timeline-wrapper">
+            <div class="timeline-line"></div>
+            <div class="timeline-container" id="timelineDots">
+                <!-- Generado por JS -->
+            </div>
+        </div>
+
+        <div class="content-area" id="contentArea">
+            <div class="info-card">
+                <h2 id="cardTitle">Haz clic en un hito temporal</h2>
+                <p id="cardDesc">Aprenderás sobre las adaptaciones que permitieron a las plantas sobrevivir fuera del agua.</p>
+            </div>
+        </div>
+    </main>
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <script>
+        const data = {
+            es: {
+                title: "Evolución de las Plantas",
+                subtitle: "Viaja en el tiempo para ver cómo conquistaron la Tierra.",
+                clickPrompt: "Haz clic en un hito temporal",
+                descPrompt: "Aprenderás sobre las adaptaciones que permitieron a las plantas sobrevivir fuera del agua.",
+                adaptationsLabel: "Adaptaciones clave:",
+                btnDone: "¡Lo he leído!",
+                milestones: [
+                    { year: "500 m.a.", group: "Embriófitas (Musgos) 🌿", info: "Fueron las pioneras. Salieron del agua pero necesitaban mucha humedad.", ads: ["Capa protectora (no secarse)", "Rizoides (raíces falsas)", "Esporas resistentes"] },
+                    { year: "425 m.a.", group: "Traqueófitas 🧪", info: "¡Inventaron las tuberías! Ahora pueden transportar agua a mucha altura.", ads: ["Tejido vascular (xilema/floema)", "Crecimiento vertical", "Cuerpo más rígido"] },
+                    { year: "360 m.a.", group: "Pteridófitas (Helechos) 🌿", info: "Aparecen las estructuras complejas que conocemos hoy.", ads: ["Raíces verdaderas", "Tallos definidos", "Hojas anchas (Frondes)"] },
+                    { year: "300 m.a.", group: "Espermatófitas (Pinos) 🌲", info: "La revolución de la semilla. El embrión viaja protegido.", ads: ["Semilla (mochila de comida)", "Polen (viaja por aire)", "No necesitan agua para reproducirse"] },
+                    { year: "140 m.a.", group: "Angiospermas 🌸", info: "La explosión de color. Flores y frutos para conquistar el mundo.", ads: ["Flores vistosas", "Frutos dulces", "Alianza con animales"] }
+                ]
+            },
+            gl: {
+                title: "Evolución das Plantas",
+                subtitle: "Viaxa no tempo para ver como conquistaron a Terra.",
+                clickPrompt: "Fai clic nun fito temporal",
+                descPrompt: "Aprenderás sobre as adaptacións que permitiron ás plantas sobrevivir fóra do auga.",
+                adaptationsLabel: "Adaptacións clave:",
+                btnDone: "Linno!",
+                milestones: [
+                    { year: "500 m.a.", group: "Embriófitas (Mofos) 🌿", info: "Foron as pioneiras. Saíron do auga pero precisaban moita humidade.", ads: ["Capa protectora", "Rizoides", "Esporas resistentes"] },
+                    { year: "425 m.a.", group: "Traqueófitas 🧪", info: "Inventaron as tuberías! Agora poden transportar auga a moita altura.", ads: ["Tecido vascular", "Crecemento vertical", "Corpo máis ríxido"] },
+                    { year: "360 m.a.", group: "Pteridófitas (Fieitos) 🌿", info: "Aparecen as estruturas complexas que coñecemos hoxe.", ads: ["Raíces verdadeiras", "Talo definido", "Follas anchas"] },
+                    { year: "300 m.a.", group: "Espermatófitas (Piñeiros) 🌲", info: "A revolución da semente. O embrión viaxa protexido.", ads: ["Semente (mochila de comida)", "Polen (viaxa polo aire)", "Sen auga para reproducirse"] },
+                    { year: "140 m.a.", group: "Anxiospermas 🌸", info: "A explosión de cor. Flores e froitos para conquistar o mundo.", ads: ["Flores rechamantes", "Froitos doces", "Alianza con animais"] }
+                ]
+            },
+            ar: {
+                title: "تطور النباتات",
+                subtitle: "سافر عبر الزمن لترى كيف غزت النباتات الأرض.",
+                clickPrompt: "انقر على معلم زمني",
+                descPrompt: "سوف تتعلم عن التكيفات التي سمحت للنباتات بالبقاء خارج الماء.",
+                adaptationsLabel: "التكيفات الرئيسية:",
+                btnDone: "لقد قرأت هذا!",
+                milestones: [
+                    { year: "500 م.س.", group: "النباتات الجنينية (الطحالب) 🌿", info: "كانت هي الرائدة. خرجت من الماء ولكنها احتاجت للكثير من الرطوبة.", ads: ["طبقة واقية ضد الجفاف", "أشباه جذور", "أبواغ مقاومة"] },
+                    { year: "425 م.س.", group: "النباتات الوعائية 🧪", info: "اخترعت الأنابيب! الآن يمكنها نقل الماء لارتفاعات كبيرة.", ads: ["أنسجة وعائية", "نمو طولي", "جسم أكثر صلابة"] },
+                    { year: "360 م.س.", group: "السرخسيات 🌿", info: "ظهرت الهياكل المعقدة التي نعرفها اليوم.", ads: ["جذور حقيقية", "سيقان واضحة", "أوراق عريضة"] },
+                    { year: "300 م.س.", group: "النباتات البذرية 🌲", info: "ثورة البذور. الجنين يسافر محمياً.", ads: ["البذرة (حقيبة طعام للجنين)", "حبوب اللقاح", "لا تحتاج للماء للتكاثر"] },
+                    { year: "140 م.س.", group: "كاسيات البذور 🌸", info: "انفجار الألوان. أزهار وثمار لغزو العالم.", ads: ["أزهار جذابة", "ثمار حلوة", "تحالف مع الحيوانات"] }
+                ]
+            }
+        };
+
+        let currentLang = 'es';
+        let timerInterval;
+        let seconds = 0;
+        let timerRunning = false;
+
+        // Init
+        function init() {
+            renderTimeline();
+            setLanguage('es');
+        }
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            document.documentElement.dir = (lang === 'ar') ? 'rtl' : 'ltr';
+            document.getElementById('mainTitle').innerText = data[lang].title;
+            document.getElementById('subTitle').innerText = data[lang].subtitle;
+            renderTimeline();
+            resetCard();
+        }
+
+        function renderTimeline() {
+            const container = document.getElementById('timelineDots');
+            container.innerHTML = '';
+            data[currentLang].milestones.forEach((m, index) => {
+                const div = document.createElement('div');
+                div.className = 'milestone';
+                div.onclick = () => showInfo(index);
+                div.innerHTML = `
+                    <div class="milestone-dot">${index + 1}</div>
+                    <span class="milestone-year">${m.year}</span>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function showInfo(index) {
+            const m = data[currentLang].milestones[index];
+            const area = document.getElementById('contentArea');
+            
+            let adsHtml = m.ads.map(ad => `
+                <div class="adaptation-item">
+                    ${ad}
+                </div>
+            `).join('');
+
+            area.innerHTML = `
+                <div class="info-card">
+                    <h2>${m.group}</h2>
+                    <p style="font-size: 1.2rem; border-left: 4px solid var(--accent-green); padding-left: 15px; margin: 1rem 0;">${m.info}</p>
+                    <h3 style="margin-top:2rem;">${data[currentLang].adaptationsLabel}</h3>
+                    <div class="adaptation-list">
+                        ${adsHtml}
+                    </div>
+                    <button onclick="triggerConfetti()" style="margin-top: 2rem; width: 100%; padding: 15px;">${data[currentLang].btnDone} 🎉</button>
+                </div>
+            `;
+        }
+
+        function resetCard() {
+            const area = document.getElementById('contentArea');
+            area.innerHTML = `
+                <div class="info-card">
+                    <h2 id="cardTitle">${data[currentLang].clickPrompt}</h2>
+                    <p id="cardDesc">${data[currentLang].descPrompt}</p>
+                </div>
+            `;
+        }
+
+        // Accessibility Functions
+        function toggleDyslexia() {
+            document.body.classList.toggle('dyslexia-font');
+        }
+
+        function toggleContrast() {
+            document.body.classList.toggle('high-contrast');
+        }
+
+        // Timer Functions
+        function toggleTimer() {
+            if (timerRunning) {
+                clearInterval(timerInterval);
+                document.getElementById('btnTimerControl').innerText = "▶️";
+            } else {
+                timerInterval = setInterval(() => {
+                    seconds++;
+                    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+                    const s = (seconds % 60).toString().padStart(2, '0');
+                    document.getElementById('timerDisplay').innerText = `${m}:${s}`;
+                }, 1000);
+                document.getElementById('btnTimerControl').innerText = "⏸️";
+            }
+            timerRunning = !timerRunning;
+        }
+
+        function hideTimer() {
+            document.getElementById('timerContainer').classList.add('hidden');
+        }
+
+        // Confetti Logic
+        function triggerConfetti() {
+            const canvas = document.getElementById('confetti-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            let particles = [];
+            for (let i = 0; i < 100; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: canvas.height + 10,
+                    size: Math.random() * 10 + 5,
+                    color: `hsl(${Math.random() * 360}, 70%, 50%)`,
+                    speedY: -Math.random() * 10 - 5,
+                    speedX: Math.random() * 6 - 3,
+                    rotation: Math.random() * 360
+                });
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach((p, i) => {
+                    p.y += p.speedY;
+                    p.x += p.speedX;
+                    p.speedY += 0.2; // Gravity
+                    
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(p.rotation * Math.PI / 180);
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+                    ctx.restore();
+
+                    if (p.y > canvas.height + 20) particles.splice(i, 1);
+                });
+
+                if (particles.length > 0) requestAnimationFrame(animate);
+            }
+            animate();
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
