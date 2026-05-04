@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trabajar con un PDF en Antigravity</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Lora:ital,wght@0,400;1,400;1,600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f2eb;
+    --ink: #1a1714;
+    --accent: #d4420a;
+    --accent2: #2a5fa5;
+    --accent3: #1a7a4a;
+    --accent4: #7a3fa0;
+    --muted: #7a7268;
+    --card: #ffffff;
+    --border: #ddd8ce;
+    --code-bg: #1a1714;
+    --code-fg: #e8e2d5;
+    --code-accent: #f0a05a;
+    --tag-bg: #1a1714;
+    --tag-fg: #f5f2eb;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Lora', Georgia, serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.7;
+    font-size: 17px;
+  }
+
+  /* NAV */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--ink);
+    color: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 2rem;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.82rem;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+    border-bottom: 2px solid var(--accent);
+  }
+  nav a {
+    color: var(--bg);
+    text-decoration: none;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+  }
+  nav a:hover { opacity: 1; }
+  .nav-nums { display: flex; gap: 0.5rem; align-items: center; }
+  .nav-nums a {
+    width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 4px;
+    font-size: 0.78rem;
+    transition: all 0.2s;
+  }
+  .nav-nums a:hover, .nav-nums a.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    opacity: 1;
+  }
+  .nav-arrows { display: flex; gap: 1rem; }
+
+  /* HERO */
+  .hero {
+    text-align: center;
+    padding: 5rem 2rem 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 50% 0%, rgba(212,66,10,0.07) 0%, transparent 70%),
+      repeating-linear-gradient(0deg, transparent, transparent 39px, var(--border) 39px, var(--border) 40px),
+      repeating-linear-gradient(90deg, transparent, transparent 39px, var(--border) 39px, var(--border) 40px);
+    pointer-events: none;
+  }
+  .hero-icon {
+    font-size: 4rem;
+    display: block;
+    margin-bottom: 1.5rem;
+    animation: floatIcon 3s ease-in-out infinite;
+  }
+  @keyframes floatIcon {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.4rem);
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 1.2rem;
+    position: relative;
+  }
+  .hero h1 em {
+    font-style: normal;
+    color: var(--accent);
+  }
+  .hero-sub {
+    font-family: 'Lora', serif;
+    font-style: italic;
+    font-size: 1.15rem;
+    color: var(--muted);
+    max-width: 540px;
+    margin: 0 auto 2rem;
+    position: relative;
+  }
+  .hero-tags {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    position: relative;
+  }
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--tag-bg);
+    color: var(--tag-fg);
+    font-family: 'Syne', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    padding: 0.4rem 0.9rem;
+    border-radius: 100px;
+  }
+
+  /* SECTION INTRO */
+  .intro-section {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 3.5rem 2rem;
+  }
+  .section-eyebrow {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+  }
+  .intro-section h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.9rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+  .intro-section p {
+    color: #3a3530;
+    margin-bottom: 1rem;
+  }
+  .note-box {
+    background: var(--ink);
+    color: var(--bg);
+    border-radius: 8px;
+    padding: 1rem 1.4rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    margin-top: 1.5rem;
+  }
+
+  /* INDEX CARDS */
+  .index-cards {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 0 2rem 4rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+  }
+  .index-card {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 1.2rem 1rem;
+    text-align: center;
+    text-decoration: none;
+    color: var(--ink);
+    font-family: 'Syne', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    transition: all 0.22s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .index-card span:first-child { font-size: 1.8rem; }
+  .index-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(212,66,10,0.12);
+    color: var(--accent);
+  }
+
+  /* PROMPT BLOCKS */
+  .prompts {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 2rem 6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 5rem;
+  }
+
+  .prompt-block {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .prompt-block.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .prompt-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.2rem;
+  }
+  .prompt-num {
+    flex-shrink: 0;
+    width: 52px; height: 52px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: white;
+    margin-top: 3px;
+  }
+  .num-1 { background: var(--accent); }
+  .num-2 { background: var(--accent2); }
+  .num-3 { background: var(--accent3); }
+  .num-4 { background: var(--accent4); }
+  .num-5 { background: #b07020; }
+
+  .prompt-title-group h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.55rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  .prompt-title-group .prompt-subtitle {
+    font-style: italic;
+    color: var(--muted);
+    font-size: 0.95rem;
+    margin-top: 0.25rem;
+  }
+
+  /* Code block */
+  .code-block {
+    background: var(--code-bg);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  }
+  .code-header {
+    background: #262220;
+    padding: 0.6rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #3a3530;
+  }
+  .code-header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #a09880;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .code-dots { display: flex; gap: 6px; }
+  .code-dots span {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+  }
+  .dot-r { background: #ff5f57; }
+  .dot-y { background: #febc2e; }
+  .dot-g { background: #28c840; }
+  .code-label {
+    background: var(--accent);
+    color: white;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    padding: 0.2rem 0.7rem;
+    border-radius: 4px;
+  }
+  .code-body {
+    padding: 1.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.88rem;
+    color: var(--code-fg);
+    line-height: 1.75;
+    white-space: pre-wrap;
+  }
+  .code-body .hi { color: var(--code-accent); font-style: italic; }
+  .code-body .comment { color: #6a6258; }
+
+  /* Result box */
+  .result-box {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-left: 4px solid;
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  .result-icon { font-size: 1.3rem; flex-shrink: 0; }
+  .result-box strong {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 0.3rem;
+  }
+  .result-1 { border-left-color: var(--accent); }
+  .result-2 { border-left-color: var(--accent2); }
+  .result-3 { border-left-color: var(--accent3); }
+  .result-4 { border-left-color: var(--accent4); }
+  .result-5 { border-left-color: #b07020; }
+
+  /* Visual demos */
+  .demo-mindmap {
+    background: #f0f4ff;
+    border-radius: 12px;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+  .mm-center {
+    background: var(--accent2);
+    color: white;
+    padding: 0.6rem 1.2rem;
+    border-radius: 100px;
+    font-size: 0.9rem;
+  }
+  .mm-row {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .mm-node {
+    padding: 0.4rem 0.9rem;
+    border-radius: 100px;
+    color: white;
+    font-size: 0.75rem;
+  }
+
+  .demo-gallery {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  .demo-card {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    padding: 0.8rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+  .demo-card .img-thumb {
+    background: linear-gradient(135deg, #ddd8ce 0%, #c8c0b4 100%);
+    border-radius: 4px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .demo-stats {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    background: #f8f5f0;
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+  .stat-pill {
+    text-align: center;
+    background: white;
+    border: 2px solid;
+    border-radius: 10px;
+    padding: 1rem 1.5rem;
+    min-width: 110px;
+    font-family: 'Syne', sans-serif;
+  }
+  .stat-num {
+    font-size: 2rem;
+    font-weight: 800;
+    display: block;
+    line-height: 1;
+    margin-bottom: 0.4rem;
+  }
+  .stat-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+  .stat-sub { font-size: 0.65rem; color: var(--muted); margin-top: 0.15rem; }
+
+  .s-green { border-color: #22c55e; color: #166534; }
+  .s-green .stat-num { color: #22c55e; }
+  .s-yellow { border-color: #eab308; color: #854d0e; }
+  .s-yellow .stat-num { color: #ca8a04; }
+  .s-red { border-color: #ef4444; color: #7f1d1d; }
+  .s-red .stat-num { color: #ef4444; }
+
+  /* DIVIDER */
+  .wave-divider {
+    text-align: center;
+    font-size: 1.5rem;
+    color: var(--border);
+    letter-spacing: 0.5rem;
+    padding: 1rem 0;
+    user-select: none;
+  }
+
+  /* FOOTER */
+  footer {
+    background: var(--ink);
+    color: rgba(255,255,255,0.5);
+    text-align: center;
+    padding: 2rem;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+  }
+  footer a { color: rgba(255,255,255,0.75); text-decoration: none; }
+  footer a:hover { color: white; }
+
+  /* SCROLL ANIMATION */
+  @media (prefers-reduced-motion: reduce) {
+    .prompt-block { opacity: 1; transform: none; }
+  }
+</style>
+</head>
+<body>
+
+
+
+<!-- HERO -->
+<section class="hero">
+  <h1><em>SESIÓN 17</em></h1>
+</section>
+
+<!-- INTRO -->
+<section class="intro-section" id="intro">
+  <div class="section-eyebrow">🗂️ ¿Qué vamos a hacer?</div>
+  <h2>Punto de partida: un PDF</h2>
+  <p>Partimos de un PDF — puede ser un libro de texto, un artículo científico, un catálogo o cualquier documento. A través de prompts sucesivos en Antigravity, el agente va extrayendo y transformando el contenido en diferentes formatos útiles.</p>
+  <div class="note-box">⚡ Cada prompt es independiente: puedes hacer solo los que necesites, en el orden que quieras.</div>
+</section>
+
+<!-- INDEX CARDS -->
+<div class="index-cards">
+  <a href="#resumen" class="index-card"><span>📝</span><span>Resumen del PDF</span></a>
+  <a href="#mapa" class="index-card"><span>🧠</span><span>Mapa mental</span></a>
+  <a href="#extraer" class="index-card"><span>🖼️</span><span>Extraer fotos</span></a>
+  <a href="#galeria" class="index-card"><span>🌐</span><span>Web con metadatos</span></a>
+  <a href="#clasificar" class="index-card"><span>📊</span><span>Clasificar por tamaño</span></a>
+</div>
+
+<!-- PROMPTS -->
+<div class="prompts">
+
+  <!-- PROMPT 1 -->
+  <div class="prompt-block" id="resumen">
+    <div class="prompt-header">
+      <div class="prompt-num num-1">1</div>
+      <div class="prompt-title-group">
+        <h2>📝 Resumir el PDF</h2>
+        <p class="prompt-subtitle">Extrae los puntos clave, estructura e ideas principales del documento</p>
+      </div>
+    </div>
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-header-left">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          Prompt 1 — Resumen
+        </div>
+        <span class="code-label">🚀 Antigravity</span>
+      </div>
+      <div class="code-body">Tienes el fichero <span class="hi">[nombre-del-fichero.pdf]</span> en este proyecto.
+Lee el PDF completo y genera un resumen estructurado en español con:
+<span class="comment">- Título y autoría (si aparecen)</span>
+<span class="comment">- Introducción: de qué trata el documento en 3-4 líneas</span>
+<span class="comment">- Puntos principales: lista de temas o capítulos más importantes,</span>
+<span class="comment">  con 2-3 líneas de resumen cada uno</span>
+<span class="comment">- Conclusiones o ideas finales</span>
+<span class="comment">- Conceptos clave: lista de términos o palabras importantes</span>
+<span class="comment">  que aparecen en el documento</span>
+Guarda el resultado en un fichero llamado <span class="hi">resumen.md</span>.</div>
+    </div>
+    <div class="result-box result-1">
+      <span class="result-icon">📄</span>
+      <div><strong>Resultado esperado</strong>Un fichero <code>resumen.md</code> con toda la información estructurada, listo para copiar en un documento o compartir.</div>
+    </div>
+  </div>
+
+  <div class="wave-divider">· · ·</div>
+
+  <!-- PROMPT 2 -->
+  <div class="prompt-block" id="mapa">
+    <div class="prompt-header">
+      <div class="prompt-num num-2">2</div>
+      <div class="prompt-title-group">
+        <h2>🧠 Generar un mapa mental</h2>
+        <p class="prompt-subtitle">Visualiza la estructura del documento como un mapa de nodos interactivo</p>
+      </div>
+    </div>
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-header-left">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          Prompt 2 — Mapa mental
+        </div>
+        <span class="code-label">🚀 Antigravity</span>
+      </div>
+      <div class="code-body">Usando el contenido del resumen que acabas de generar,
+crea un mapa mental interactivo en HTML.
+Requisitos:
+<span class="comment">- Nodo central con el título del documento</span>
+<span class="comment">- Ramas de primer nivel para cada tema o capítulo principal</span>
+<span class="comment">- Ramas de segundo nivel con los subtemas o conceptos clave</span>
+<span class="comment">- Colores diferentes para cada rama principal</span>
+<span class="comment">- Clic en un nodo para expandir o contraer sus ramas</span>
+Guarda el resultado como <span class="hi">mapa-mental.html</span> y ábrelo en el
+navegador para que lo pueda ver.</div>
+    </div>
+    <!-- Visual Demo -->
+    <div class="demo-mindmap">
+      <div class="mm-center">📄 Título del documento</div>
+      <div class="mm-row">
+        <span class="mm-node" style="background:#2a5fa5">🔵 Capítulo 1</span>
+        <span class="mm-node" style="background:#1a7a4a">🟢 Capítulo 2</span>
+        <span class="mm-node" style="background:#d4420a">🟠 Capítulo 3</span>
+        <span class="mm-node" style="background:#7a3fa0">🟣 Conceptos</span>
+      </div>
+      <div class="mm-row">
+        <span class="mm-node" style="background:#1a7a4a">🟢 Conclusiones</span>
+        <span class="mm-node" style="background:#2a5fa5;opacity:0.7">🔷 Términos clave</span>
+      </div>
+    </div>
+    <div class="result-box result-2">
+      <span class="result-icon">🌐</span>
+      <div><strong>Resultado esperado</strong>Un fichero <code>mapa-mental.html</code> que se abre directamente en el navegador con nodos clicables y coloreados.</div>
+    </div>
+  </div>
+
+  <div class="wave-divider">· · ·</div>
+
+  <!-- PROMPT 3 -->
+  <div class="prompt-block" id="extraer">
+    <div class="prompt-header">
+      <div class="prompt-num num-3">3</div>
+      <div class="prompt-title-group">
+        <h2>🖼️ Extraer todas las imágenes del PDF</h2>
+        <p class="prompt-subtitle">Guarda cada imagen como fichero independiente con una nomenclatura clara</p>
+      </div>
+    </div>
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-header-left">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          Prompt 3 — Extraer imágenes
+        </div>
+        <span class="code-label">🚀 Antigravity</span>
+      </div>
+      <div class="code-body">Extrae todas las imágenes del fichero <span class="hi">[nombre-del-fichero.pdf]</span>.
+Para cada imagen:
+<span class="comment">- Guárdala como fichero independiente en la carpeta imágenes/</span>
+<span class="comment">- Nómbrala como pagina-[N]-imagen-[M]</span>
+<span class="comment">  (ej: pagina-03-imagen-01.jpg)</span>
+<span class="comment">- Conserva el formato original (JPG, PNG, etc.)</span>
+Al terminar, muestra un listado por consola con:
+<span class="comment">- Nombre del fichero</span>
+<span class="comment">- Página de origen</span>
+<span class="comment">- Formato</span>
+<span class="comment">- Dimensiones en píxeles</span>
+<span class="comment">- Tamaño en KB</span></div>
+    </div>
+    <div class="result-box result-3">
+      <span class="result-icon">📁</span>
+      <div><strong>Resultado esperado</strong>Carpeta <code>imágenes/</code> con todos los ficheros extraídos y un listado en el terminal con sus datos técnicos.</div>
+    </div>
+  </div>
+
+  <div class="wave-divider">· · ·</div>
+
+  <!-- PROMPT 4 -->
+  <div class="prompt-block" id="galeria">
+    <div class="prompt-header">
+      <div class="prompt-num num-4">4</div>
+      <div class="prompt-title-group">
+        <h2>🌐 Crear una web con todas las imágenes y sus metadatos</h2>
+        <p class="prompt-subtitle">Galería visual con nombre de fichero, página de origen, dimensiones y tamaño</p>
+      </div>
+    </div>
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-header-left">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          Prompt 4 — Galería web
+        </div>
+        <span class="code-label">🚀 Antigravity</span>
+      </div>
+      <div class="code-body">Crea una página web llamada <span class="hi">galeria.html</span> que muestre todas
+las imágenes de la carpeta imágenes/.
+Para cada imagen debe mostrarse:
+<span class="comment">- La imagen en miniatura clicable (que al pulsar se vea en grande)</span>
+<span class="comment">- Nombre del fichero</span>
+<span class="comment">- Página del PDF de donde procede</span>
+<span class="comment">- Dimensiones en píxeles (ancho × alto)</span>
+<span class="comment">- Tamaño en KB</span>
+<span class="comment">- Formato (JPG, PNG…)</span>
+Diseño en cuadrícula de tarjetas, fondo claro, aspecto limpio.
+La página debe funcionar en local sin servidor.</div>
+    </div>
+    <!-- Gallery Demo -->
+    <div class="demo-gallery">
+      <div class="demo-card"><div class="img-thumb">🖼️</div>p3-img1.jpg<br>640×480 · 84 KB</div>
+      <div class="demo-card"><div class="img-thumb">🖼️</div>p5-img1.png<br>1200×900 · 312 KB</div>
+      <div class="demo-card"><div class="img-thumb">🖼️</div>p8-img1.jpg<br>320×240 · 28 KB</div>
+      <div class="demo-card"><div class="img-thumb">🖼️</div>p12-img1.jpg<br>800×600 · 156 KB</div>
+    </div>
+    <div class="result-box result-4">
+      <span class="result-icon">🌐</span>
+      <div><strong>Resultado esperado</strong><code>galeria.html</code> abierta directamente en el navegador con todas las imágenes en tarjetas, con zoom al hacer clic.</div>
+    </div>
+  </div>
+
+  <div class="wave-divider">· · ·</div>
+
+  <!-- PROMPT 5 -->
+  <div class="prompt-block" id="clasificar">
+    <div class="prompt-header">
+      <div class="prompt-num num-5">5</div>
+      <div class="prompt-title-group">
+        <h2>📊 Clasificar las imágenes por tamaño</h2>
+        <p class="prompt-subtitle">Separa las imágenes en pequeñas, medianas y grandes según sus dimensiones</p>
+      </div>
+    </div>
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-header-left">
+          <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+          Prompt 5 — Clasificación
+        </div>
+        <span class="code-label">🚀 Antigravity</span>
+      </div>
+      <div class="code-body">Clasifica todas las imágenes de la carpeta imágenes/ en tres
+grupos según sus dimensiones:
+<span class="comment">- Pequeñas: ancho o alto menor de 400 px</span>
+<span class="comment">- Medianas: entre 400 px y 1000 px</span>
+<span class="comment">- Grandes: ancho o alto mayor de 1000 px</span>
+Haz las siguientes cosas:
+<span class="comment">1. Copia cada imagen a la subcarpeta correspondiente:</span>
+<span class="comment">   imágenes/pequeñas/, imágenes/medianas/, imágenes/grandes/</span>
+<span class="comment">2. Actualiza la galeria.html para que muestre las tres categorías</span>
+<span class="comment">   con pestañas o secciones separadas</span>
+<span class="comment">3. Añade en la parte superior de la galería un resumen con</span>
+<span class="comment">   cuántas imágenes hay en cada categoría</span></div>
+    </div>
+    <!-- Stats Demo -->
+    <div class="demo-stats">
+      <div class="stat-pill s-green">
+        <span class="stat-num">8</span>
+        <div class="stat-label">🟢 Pequeñas</div>
+        <div class="stat-sub">&lt; 400 px</div>
+      </div>
+      <div class="stat-pill s-yellow">
+        <span class="stat-num">14</span>
+        <div class="stat-label">🟡 Medianas</div>
+        <div class="stat-sub">400 – 1000 px</div>
+      </div>
+      <div class="stat-pill s-red">
+        <span class="stat-num">5</span>
+        <div class="stat-label">🔴 Grandes</div>
+        <div class="stat-sub">&gt; 1000 px</div>
+      </div>
+    </div>
+    <div class="result-box result-5">
+      <span class="result-icon">📁</span>
+      <div><strong>Resultado esperado</strong>Tres subcarpetas creadas automáticamente, y la galería actualizada con pestañas por categoría y el resumen de conteos en la parte superior.</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<footer>
+  SOLUCIONES IA - SESIÓN 17
+</footer>
+
+<script>
+  // Intersection Observer for scroll animations
+  const blocks = document.querySelectorAll('.prompt-block');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1 });
+  blocks.forEach(b => observer.observe(b));
+</script>
+</body>
+</html>
